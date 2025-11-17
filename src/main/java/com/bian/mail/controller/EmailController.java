@@ -39,7 +39,7 @@ public class EmailController {
     """.formatted(verificationLink);
 
         return emailService.sendEmail(
-                "BIAN - Bienestar Animal", "no-reply@test-q3enl6kq69r42vwr.mlsender.net",
+                "BIAN - Bienestar Animal", "no-reply@test-65qngkd8d1dlwr12.mlsender.net",
                 "Destinatario", email,
                 "Verificación de Correo",
                 "Por favor, verifica tu correo para continuar.",
