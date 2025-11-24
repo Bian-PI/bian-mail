@@ -1,6 +1,7 @@
 package com.bian.mail.controller;
 
 import com.bian.mail.service.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,13 +9,17 @@ import org.springframework.web.bind.annotation.*;
 public class EmailController {
     private final EmailService emailService;
 
+    @Value("${my.service.url}")
+    private String userServiceUrl;
+
+
     public EmailController(EmailService emailService) {
         this.emailService = emailService;
     }
 
     @PostMapping("/send/{id}")
     public String sendTestEmail(@PathVariable Long id, @RequestParam String email) {
-        String verificationLink = "http://localhost:8081/auth/verify?id=" + id;
+        String verificationLink = userServiceUrl + "/auth/verify?id=" + id;
 
         String htmlContent = """
         <div style="font-family: Arial, sans-serif; color: #333; background-color: #f4f4f4; padding: 20px;">
