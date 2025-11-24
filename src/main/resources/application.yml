@@ -1,5 +1,5 @@
 server:
-  port: 8080  # ✅ Puerto diferente al user-service
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -9,26 +9,77 @@ mailersend:
   api:
     token: ${API_TOKEN}
 
-# ✅ CONFIGURACIÓN EUREKA
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.value}
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
-
 my:
   service:
     url: ${USER_URL:http://localhost:8081}
 
-# ✅ LOGS PARA DEBUG
+# ✅ CONFIGURACIÓN EUREKA CORREGIDA
+eureka:
+  client:
+    service-url:
+      defaultZone: https://eurekaserver-bian.up.railway.app/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+    # ⚠️ TIMEOUTS AUMENTADOS (Railway puede ser lento)
+    eureka-server-connect-timeout-seconds: 30
+    eureka-server-read-timeout-seconds: 30
+
+    # Intervalos más conservadores
+    registry-fetch-interval-seconds: 30
+    initial-instance-info-replication-interval-seconds: 40
+    instance-info-replication-interval-seconds: 30
+
+  instance:
+    # ⚠️ CAMBIO CRÍTICO: prefer-ip-address debe ser false en Railway
+    prefer-ip-address: false
+    hostname: ${RAILWAY_PUBLIC_DOMAIN:localhost}
+
+    # ID único de la instancia
+    instance-id: ${spring.application.name}:${RAILWAY_REPLICA_ID:${random.value}}
+
+    # Heartbeats más espaciados
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+    # ⚠️ CONFIGURACIÓN DE PUERTO PARA RAILWAY
+    non-secure-port: ${PORT:8081}
+    non-secure-port-enabled: true
+    secure-port-enabled: false
+
+# ✅ RIBBON TIMEOUTS (para conectar a otros servicios vía Eureka)
+ribbon:
+  ConnectTimeout: 30000
+  ReadTimeout: 30000
+  MaxAutoRetries: 1
+  MaxAutoRetriesNextServer: 1
+
+# ✅ CONFIGURACIÓN FEIGN CORREGIDA
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 30000  # Aumentado de 10s a 30s
+        readTimeout: 30000     # Aumentado de 10s a 30s
+        loggerLevel: FULL
+  circuitbreaker:
+    enabled: true
+
+# ✅ CIRCUIT BREAKER (Resilience4j)
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+
+# ✅ LOGS OPTIMIZADOS
 logging:
   level:
-    com.bian.mail: DEBUG
-    org.springframework.cloud: DEBUG
+    com.bian.userbian: DEBUG
+    org.springframework.cloud: INFO  # Reducido de DEBUG
+    com.netflix.discovery: INFO      # Reducido de DEBUG
+    com.netflix.eureka: INFO
+    feign: DEBUG
