@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8082}
 
 spring:
   application:
@@ -17,7 +17,8 @@ my:
 eureka:
   client:
     service-url:
-      defaultZone: https://eurekaserver-bian.up.railway.app/eureka/
+      #defaultZone: https://eurekaserver-bian.up.railway.app/eureka/
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
 
